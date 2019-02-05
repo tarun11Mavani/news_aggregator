@@ -90,5 +90,5 @@ tags = nlargest(10, tfidf_score, key=tfidf_score.get)
 # In[223]:
 
 
-python(tags);
+print(tags);
 
