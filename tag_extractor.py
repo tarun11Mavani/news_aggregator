@@ -27,7 +27,7 @@ def readIDFscore():
     with open(filename, errors = 'ignore') as f:
         for line in f:
             s = re.sub(' +', '', line).strip().split('\t');
-            if(len(s[0]) > 3 or float(s[1]) < 5):
+            if(len(s[0]) > 4 or float(s[1]) < 10):
                 dict[s[0]] = s[1];
     return dict;
 
