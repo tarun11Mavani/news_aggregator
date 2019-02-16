@@ -13,19 +13,23 @@ let dict = JSON.parse(rawdata);
 
 
 
+//reading article text from url
 
 request(url, function(err, resp, body) {
     if (err)
     throw err;
     $ = cheerio.load(body);
     var tf = computeTF($.text());
-    tfidf_score = computeTFIDF(tf, dict);
-    //console.log(tfidf_score.slice(1, 10));
-    insert_post(tfidf_score);
+    tfidf_score = computeTFIDF(tf, dict);     //tfidf score in tag : score format  
+    console.log(tfidf_score.slice(1, 10));    //prints top 10 tags
+   
+   
+    insert_post(tfidf_score);                 //function call to insert in database
 });    
 
 
 
+////helper functions to compute tfidf score
 
 function computeTF(text){
     
@@ -87,7 +91,12 @@ function computeTFIDF(tf, dict){
 
 
 
-//updateing database
+//updateing database (ignore this part)
+// // two types of entry in db
+//     1)  unique id assigned by mongo(_id), url   
+//     2)  tag, _id, score     (like   { tag: 'India', _id: ID,  score: 7.845421})
+
+
 
 
 function insert_post(tfidf_score){
@@ -104,31 +113,7 @@ function insert_post(tfidf_score){
                 db.close();
               });
             
-          //console.log(tfidf_score);
-            
-            var myobj = JSON.parse(JSON.stringify(tfidf_score.slice(0, 10)));
-            i = 1;
-            for(var entry in tfidf_score.slice(0, 10) ){
-                console.log(entry.key);
-                var myobj = { tag: entry.key, id:i, score: entry.value}
-                dbo.collection("post").insertOne(myobj, function(err, result) {
-                    if (err) throw err;
-                    db.close();
-                    
-                });
-
-            }
-
-
-
-
-            console.log(myobj);
         
-        dbo.collection("post").find({}).toArray( function(err, result) {
-        if (err) throw err;
-            console.log(result);
-        });
-    
     db.close();
     }); 
   
