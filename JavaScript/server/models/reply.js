@@ -1,24 +1,19 @@
 var mongoose = require('mongoose');
-var ObjectId = mongoose.Schema.Types.ObjectId;
 
-var Post = mongoose.model('Post', {
+var Reply = mongoose.model('Reply', {
   handle: {
     type: String,
     required: true
   },
-  link: {
-    type: String,
-    required: true,
-    trim: true,
-    minlength: 1,
-    maxlength: 240
+  commentID: {
+    type: mongoose.Schema.Types.ObjectId,
+    required: true
   },
   text: {
     type: String,
     required: true,
     trim: true,
-    minlength: 1,
-    maxlength: 600
+    minlength: 1
   },
   dateTime: {
     type: Date,
@@ -35,8 +30,7 @@ var Post = mongoose.model('Post', {
   reports: {
     type: Number,
     default: 0
-  },
-  tags: [[]]
+  }
 });
 
-module.exports = { Post };
+module.exports = { Reply };

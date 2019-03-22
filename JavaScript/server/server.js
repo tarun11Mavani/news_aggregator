@@ -1,3 +1,4 @@
+// Only for personal testing purposes, will be ignored later
 var express = require('express');
 // To parse the body, obv, specifically
 // to get the string data from body and return as an object
@@ -10,6 +11,16 @@ var { mongoose } = require('./db/mongoose.js');
 var { User } = require('./models/user.js');
 var { Post } = require('./models/post.js');
 var { Comment } = require('./models/comment.js');
+var { Reply } = require('./models/reply.js');
+
+// controller for tag extraction
+const tags = require('./controllers/tagExtractor.js');
+// testing the error
+var url = 'https://www.ndtv.com/india-news/pulwama-attack-as-soldiers-bodies-arrive-ministers-rahul-gandhi-pay-tribute-at-delhi-airport-1994332';
+var flag;
+tags.tagExtractor(url, (data) => {
+  console.log(data);
+});
 
 // creating our express server
 var app = express();
@@ -26,7 +37,11 @@ app.post('/posts', (req, res) => {
     handle: req.body.handle,
     link: req.body.link,
     text: req.body.text
+    // tags still not working because of the callback, need asyns await
+    // tags: tagExtractor(req.body.link)
   });
+
+  //tagExtractor(req.body.link);
 
   post.save().then((doc) => {
     res.send(doc);
