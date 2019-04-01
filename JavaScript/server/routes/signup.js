@@ -5,7 +5,7 @@ const User = require('../models/user'); // Import model
 const sendConfirmationMail = require('../controllers/sendConfirmationMail'); // Import Controllers
 
 const createNewAccount = (req, res) => {
-  User.findOne({ sid: req.body.sid }).exec((queryError, user) => {
+  User.findOne({ sid: req.body.sid }) .exec((queryError, user) => {
     if (queryError) {
       console.log(queryError);
       res.json({ message: 'Database query error. Failed to create document.' });
