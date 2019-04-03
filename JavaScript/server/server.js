@@ -23,14 +23,13 @@ const path = require("path");
 var computeTF = helper.computeTF;
 var computeTFIDF = helper.computeTFIDF;
 var ObjectId = mongoose.Schema.Types.ObjectId;
-var TagModel = mongoose.model('Tag');
+var TagModel = mongoose.model('Tag');   //model for tag ( storing tag, postid so ten entry with same postid and diff tag ) 
 var PostModel = mongoose.model('Post');
 
 
 // controller for tag extraction
 const tagExtractor = require('./controllers/tagExtractor.js').tagExtractor;
 
-console.log(tagExtractor);
 // testing the error
 // tags.tagExtractor(url, (data) => {
 //   console.log(data);
@@ -60,10 +59,10 @@ app.post('/posts', (req, res) => {
         //  });
        }
 
-       let $ = cheerio.load(body);
+       let $ =  cheerio.load(body);
        let rawdata = fs.readFileSync(path.resolve(__dirname, "../IDF_score.json"));
        let dict = JSON.parse(rawdata);
-       var tf = computeTF($.text());
+       var tf = computeTF(req.body.text + req.body.text + $.text());
        // arrays of arrays format
        tfidf_score = computeTFIDF(tf, dict);     // tfidf score in [tag, score] format
        var post = new Post({
@@ -71,7 +70,6 @@ app.post('/posts', (req, res) => {
         link: req.body.link,
         text: req.body.text,
         tags :  tfidf_score.slice(0, 12)
-        // tags still not working because of the callback, need asyns await
         
       });
 
@@ -104,36 +102,57 @@ app.post('/posts', (req, res) => {
 app.post('/search', (req, res) => {
   //console.log(req.body);
 
-  text = req.body.text
-  .replace(/\s+/g, " ")
-  .replace(/[^a-zA-Z0-9 ]/g, " ")
-  .toLowerCase()
-  .split(" ");
 
-  result = [];
-  text.forEach(word => {
-    TagModel.find({tag: word}, function (err, data) {
-      if (err) return console.error(err);
-      data.forEach(element => {
-        result.push(element.postid);
-      },
-      
-      result.forEach(id => {
-        PostModel.find({_id: id}, function(err, data){
-          if (err) return console.error(err);
-          data.forEach(element => {
-            console.log(element.link);    
-            
-          });
-        })
+  var posts = [];
+
+    text = req.body.text
+    .replace(/\s+/g, " ")
+    .replace(/[^a-zA-Z0-9 ]/g, " ")
+    .toLowerCase()
+    .split(" ");
+
+
+    //getting data from db
+      text.forEach(word => {
+        TagModel.find({tag: word}, function (err, data1) {
+        if (err) return console.error(err);
+        data1.forEach(element => {
+          PostModel.find({_id: element.postid}, function(err, data2){
+            if (err) return console.error(err);
+            data2.forEach(result => {
+              console.log(result.link);
+              posts.push(result);
+              
+            });
+          }); 
+        });
         
-      })
+      });
+      });
 
-      ); 
-      }
-     );
-  }); 
-
+      //not working in sync if I remove setTimeOut because it is returning 
+      // response before above code executes try to do it without timeout if possible
+      setTimeout(function () {
+        console.log(posts);
+        var set = new Set();
+        var result = [];
+        posts.forEach(element => {
+          if(!set.has(String(element._id)))
+          {
+            set.add(String(element._id));
+            result.push(element);
+          }
+        }); 
+        result.sort(function(first, second) {
+          return second.dateTime - first.dateTime;
+        });
+        
+        console.log(set);
+        res.send(result);  
+    }, 1000);
+    
+  
+  
 
 });
 
@@ -143,6 +162,6 @@ app.on('uncaughtException', () => {
   app.close();
 });
 
-app.listen(3005, () => {
+app.listen(3000, () => {
   console.log('Started on port 3000');
 });
