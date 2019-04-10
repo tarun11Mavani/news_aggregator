@@ -38,5 +38,5 @@ var Post = mongoose.model('Post', {
   },
   tags: [[]]
 });
-
+var Post = mongoose.model("Post");
 module.exports = { Post };
