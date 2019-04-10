@@ -4,6 +4,8 @@ const cheerio = require('cheerio');
 const fs = require('fs');
 const path = require("path");
 
+const { ObjectID } = require('mongodb');
+
 var { Post } = require('../models/post.js');
 var { Tag } = require('../models/tag.js');
 
@@ -12,7 +14,7 @@ const helper = require('../controllers/helper.js');
 var computeTF = helper.computeTF;
 var computeTFIDF = helper.computeTFIDF;
 
-const postSubmit = (req, res) => {
+const submitPost = (req, res) => {
 
   url = req.body.link;
   request(url, (error, resp, body) => {
@@ -60,7 +62,28 @@ const postSubmit = (req, res) => {
    });
 };
 
+const viewPost = (req, res) => {
+
+  var id = req.params.pid;
+
+  if (!ObjectID.isValid(id)) {
+    res.status(404).send();
+  } else {
+    Post.findById(id).then((post) => {
+      if (!post) {
+        res.status(404).send();
+      } else {
+        res.status(200).send({ post });
+      }
+    }).catch((e) => {
+      res.status(400).send();
+    });
+  }
+
+};
+
 const router = express.Router();
-router.post('/', postSubmit);
+router.post('/', submitPost);
+router.get('/:pid', viewPost);
 
 module.exports = router;
