@@ -1,6 +1,9 @@
 // Only for personal testing purposes, will be ignored later
 var express = require('express');
-var mongoose = require('mongoose');
+const helmet = require('helmet');
+const morgan = require('morgan');
+// Import routes
+const posts = require('./routes/post.js');
 
 // separate file for the server
 var { mongoose } = require('./db/mongoose.js');
@@ -23,7 +26,7 @@ const path = require("path");
 var computeTF = helper.computeTF;
 var computeTFIDF = helper.computeTFIDF;
 var ObjectId = mongoose.Schema.Types.ObjectId;
-var TagModel = mongoose.model('Tag');   //model for tag ( storing tag, postid so ten entry with same postid and diff tag ) 
+var TagModel = mongoose.model('Tag');   //model for tag ( storing tag, postid so ten entry with same postid and diff tag )
 var PostModel = mongoose.model('Post');
 
 
@@ -38,74 +41,90 @@ const tagExtractor = require('./controllers/tagExtractor.js').tagExtractor;
 // creating our express server
 var app = express();
 
+
+app.use(helmet()); // Sanitization of incoming requests
+app.use(morgan('dev')); // Logging of incoming requests
+app.use(express.json()); // Parse JSON encoded payloads in request
+app.use(express.urlencoded({ extended: false })); // Parse URL encoded payload in requests
+
+// Set custom HTTP response headers
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,HEAD,OPTIONS,POST,PUT,DELETE');
+  res.setHeader(
+    'Access-Control-Allow-Headers',
+    'Access-Control-Allow-Headers, Origin, Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers, x-access-token',
+  );
+  res.setHeader('Cache-Control', 'no-cache');
+  next();
+});
+
 // bodyParser being used as the 3rd party middleware
 app.use(bodyParser.json());
 bodyParser = require('body-parser').json();
 // creation of routs begins here
 
 // route for posting
-app.post('/posts', (req, res) => {
-   //console.log(req.body);
- 
-   url = req.body.link;
-   request(
-     url,
-     (error, resp, body) => {
-       if (error) {
-         // throw err;
-          console.log(error);
-         //  callback({
-        //    error: error
-        //  });
-       }
+app.use('/posts', posts);
+// app.post('/posts', (req, res) => {
 
-       let $ =  cheerio.load(body);
-       let rawdata = fs.readFileSync(path.resolve(__dirname, "../IDF_score.json"));
-       let dict = JSON.parse(rawdata);
-       var tf = computeTF(req.body.text + req.body.text + $.text());
-       // arrays of arrays format
-       tfidf_score = computeTFIDF(tf, dict);     // tfidf score in [tag, score] format
-       var post = new Post({
-        handle: req.body.handle,
-        link: req.body.link,
-        text: req.body.text,
-        tags :  tfidf_score.slice(0, 12)
-        
-      });
+   // url = req.body.link;
+   // request(
+   //   url,
+   //   (error, resp, body) => {
+   //     if (error) {
+   //       // throw err;
+   //        console.log(error);
+   //       //  callback({
+   //      //    error: error
+   //      //  });
+   //     }
+   //
+   //     let $ =  cheerio.load(body);
+   //     let rawdata = fs.readFileSync(path.resolve(__dirname, "../IDF_score.json"));
+   //     let dict = JSON.parse(rawdata);
+   //     var tf = computeTF(req.body.text + req.body.text + $.text());
+   //     // arrays of arrays format
+   //     tfidf_score = computeTFIDF(tf, dict);     // tfidf score in [tag, score] format
+   //     var post = new Post({
+   //      handle: req.body.handle,
+   //      link: req.body.link,
+   //      text: req.body.text,
+   //      tags :  tfidf_score.slice(0, 10)
+   //    });
+   //
+   //    // Separate storage for tags with scores
+   //    var tmp = post.get( "_id" );
+   //    var cnt  = 0;
+   //    tfidf_score.slice(0, 10).forEach(element => {
+   //      // console.log(element[0]+" "+element[1]);
+   //      var tag = new Tag({
+   //        tag: element[0],
+   //        postid: tmp,
+   //        score: element[1]
+   //      });
+   //      tag.save();
+   //    });
+   //
+   //    // Separate storage for the post
+   //    post.save().then((doc) => {
+   //      res.send(doc);
+   //    }, (e) => {
+   //      res.status(400).send(e);
+   //    });
+   //   });
 
-
-
-      var tmp = post.get( "_id" );
-      var cnt  = 0;
-      tfidf_score.slice(0, 10).forEach(element => {
-        // console.log(element[0]+" "+element[1]);
-        var tag = new Tag({
-          tag: element[0],
-          postid: tmp,
-          score: element[1]
-        });
-        tag.save();
-
-      });
-
-      post.save().then((doc) => {
-        res.send(doc);
-      }, (e) => {
-        res.status(400).send(e);
-      });
- });
-
-});
+//});
 
 
 //routing for search
 app.post('/search', (req, res) => {
   //console.log(req.body);
 
-
   var posts = [];
 
-    text = req.body.text
+  text = req.body.text
     .replace(/\s+/g, " ")
     .replace(/[^a-zA-Z0-9 ]/g, " ")
     .toLowerCase()
@@ -122,15 +141,15 @@ app.post('/search', (req, res) => {
             data2.forEach(result => {
               console.log(result.link);
               posts.push(result);
-              
+
             });
-          }); 
+          });
         });
-        
+
       });
       });
 
-      //not working in sync if I remove setTimeOut because it is returning 
+      //not working in sync if I remove setTimeOut because it is returning
       // response before above code executes try to do it without timeout if possible
       setTimeout(function () {
         console.log(posts);
@@ -142,22 +161,18 @@ app.post('/search', (req, res) => {
             set.add(String(element._id));
             result.push(element);
           }
-        }); 
+        });
         result.sort(function(first, second) {
           return second.dateTime - first.dateTime;
         });
-        
+
         console.log(set);
-        res.send(result);  
-    }, 1000);
-    
-  
-  
+        res.send(result);
+      }, 1000);
 
 });
 
-
-
+// Error Handling
 app.on('uncaughtException', () => {
   app.close();
 });

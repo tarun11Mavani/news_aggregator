@@ -1,27 +1,15 @@
 // Import Dependencies
 const express = require('express');
 const helmet = require('helmet');
-const mongoose = require('mongoose');
 const morgan = require('morgan');
-const busboyBodyParser = require('busboy-body-parser');
+var bodyParser = require('body-parser');
 require('dotenv').config();
 
 // Import routes
-const signup = require('./server/routes/signup');
-const login = require('./server/routes/login');
-const forgotpassword = require('./server/routes/forgotpassword');
-const profile = require('./server/routes/profile');
-const post = require('./server/routes/post');
+const posts = require('./server/routes/post.js');
 
 // Connect to database
-mongoose.Promise = global.Promise;
-mongoose.connect(process.env.LINK_TO_DB);
-mongoose.set('debug', true);
-const conn = mongoose.connection;
-conn.on('error', console.error.bind(console, 'MongoDB Error: '));
-conn.on('connected', () => {
-  console.log('Connected To Database...');
-});
+var { mongoose } = require('./server/db/mongoose.js');
 
 const app = express();
 
@@ -42,13 +30,10 @@ app.use((req, res, next) => {
   res.setHeader('Cache-Control', 'no-cache');
   next();
 });
+
 app.use(bodyParser.json());
 
-app.use('/signup', signup);
-app.use('/login', login);
-app.use('/forgotpassword', forgotpassword);
-app.use('/profile', profile);
-app.use('/post', post);
+app.use('/posts', posts);
 
 // Error handling
 app.use((err, req, res, next) => {
@@ -58,5 +43,5 @@ app.use((err, req, res, next) => {
 });
 
 // Start Server
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 3000;
 app.listen(port, () => console.log('Server running on port', port, '...'));
