@@ -67,55 +67,34 @@ bodyParser = require('body-parser').json();
 
 // route for posting
 app.use('/posts', posts);
-// app.post('/posts', (req, res) => {
 
-   // url = req.body.link;
-   // request(
-   //   url,
-   //   (error, resp, body) => {
-   //     if (error) {
-   //       // throw err;
-   //        console.log(error);
-   //       //  callback({
-   //      //    error: error
-   //      //  });
-   //     }
-   //
-   //     let $ =  cheerio.load(body);
-   //     let rawdata = fs.readFileSync(path.resolve(__dirname, "../IDF_score.json"));
-   //     let dict = JSON.parse(rawdata);
-   //     var tf = computeTF(req.body.text + req.body.text + $.text());
-   //     // arrays of arrays format
-   //     tfidf_score = computeTFIDF(tf, dict);     // tfidf score in [tag, score] format
-   //     var post = new Post({
-   //      handle: req.body.handle,
-   //      link: req.body.link,
-   //      text: req.body.text,
-   //      tags :  tfidf_score.slice(0, 10)
-   //    });
-   //
-   //    // Separate storage for tags with scores
-   //    var tmp = post.get( "_id" );
-   //    var cnt  = 0;
-   //    tfidf_score.slice(0, 10).forEach(element => {
-   //      // console.log(element[0]+" "+element[1]);
-   //      var tag = new Tag({
-   //        tag: element[0],
-   //        postid: tmp,
-   //        score: element[1]
-   //      });
-   //      tag.save();
-   //    });
-   //
-   //    // Separate storage for the post
-   //    post.save().then((doc) => {
-   //      res.send(doc);
-   //    }, (e) => {
-   //      res.status(400).send(e);
-   //    });
-   //   });
+app.post('/comments', (req, res) => {
+  var comment = new Comment({
+    handle: req.body.handle,
+    postID: req.body.postID,
+    text: req.body.text
+  });
 
-//});
+  comment.save().then((doc) => {
+    res.send(doc);
+  }, (e) => {
+    res.status(400).send(e);
+  });
+});
+
+app.post('/replies', (req, res) => {
+  var reply = new Reply({
+    handle: req.body.handle,
+    commentID: req.body.commentID,
+    text: req.body.text
+  });
+
+  reply.save().then((doc) => {
+    res.send(doc);
+  }, (e) => {
+    res.status(400).send(e);
+  });
+});
 
 
 //routing for search

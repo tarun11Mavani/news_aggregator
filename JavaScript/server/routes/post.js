@@ -7,6 +7,7 @@ const path = require("path");
 const { ObjectID } = require('mongodb');
 
 var { Post } = require('../models/post.js');
+var { Comment } = require('../models/comment.js');
 var { Tag } = require('../models/tag.js');
 
 const helper = require('../controllers/helper.js');
@@ -82,8 +83,31 @@ const viewPost = (req, res) => {
 
 };
 
+const viewDiscussion = (req, res) => {
+
+  var id = req.params.pid;
+
+  if (!ObjectID.isValid(id)) {
+    res.status(404).send();
+  } else {
+    Comment.find({ 'postID': id }).then((comment) => {
+      if (!comment) {
+        res.status(404).send();
+      } else {
+        console.log(comment);
+        res.status(200);
+        //res.status(200).send({ comment });
+      }
+    }).catch((e) => {
+      res.status(400).send();
+    });
+  }
+
+};
+
 const router = express.Router();
 router.post('/', submitPost);
 router.get('/:pid', viewPost);
+router.get('/discussion/:pid', viewDiscussion);
 
 module.exports = router;

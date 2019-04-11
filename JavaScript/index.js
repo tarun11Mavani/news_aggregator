@@ -7,6 +7,8 @@ require('dotenv').config();
 
 // Import routes
 const posts = require('./server/routes/post.js');
+const comments = require('./server/routes/comment.js');
+const replies = require('./server/routes/reply.js');
 
 // Connect to database
 var { mongoose } = require('./server/db/mongoose.js');
@@ -34,6 +36,8 @@ app.use((req, res, next) => {
 app.use(bodyParser.json());
 
 app.use('/posts', posts);
+app.use('/comments', comments);
+app.use('/replies', replies);
 
 // Error handling
 app.use((err, req, res, next) => {
