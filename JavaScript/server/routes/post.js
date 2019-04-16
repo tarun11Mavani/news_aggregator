@@ -94,8 +94,7 @@ const viewDiscussion = (req, res) => {
       if (!comment) {
         res.status(404).send();
       } else {
-        console.log(comment);
-        res.status(200);
+        console.log(comment);x
         res.status(200).send({ comment });
       }
     }).catch((e) => {
@@ -105,8 +104,30 @@ const viewDiscussion = (req, res) => {
 
 };
 
+const submitUpVote = (req, res) => {
+  var id = req.params.id;
+
+  if (!ObjectID.isValid(id)) {
+    res.status(404).send();
+  } else {
+    Post.findById(id).then((post) => {
+      if (!post) {
+        res.status(404).send();
+      } else {
+        console.log(post);
+        let obj = post.likes.find(o => o.user.type === 'string 1');
+        console.log(obj);
+      }
+    }).catch((e) => {
+      res.status(400).send();
+    });
+  }
+};
+
 const router = express.Router();
 router.post('/', submitPost);
+router.post('/upVote/:pid', submitUpVote);
+router.post('/downVote/:pid', submitDownVote);
 router.get('/:pid', viewPost);
 router.get('/discussion/:pid', viewDiscussion);
 
