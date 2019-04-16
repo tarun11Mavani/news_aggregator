@@ -17,7 +17,7 @@ var computeTFIDF = helper.computeTFIDF;
 
 const submitPost = (req, res) => {
 
-  url = req.body.link;
+  url = req.body.url;
   request(url, (error, resp, body) => {
     if (error) {
        console.log(error);
@@ -32,7 +32,7 @@ const submitPost = (req, res) => {
 
     var post = new Post({
      handle: req.body.handle,
-     link: req.body.link,
+     url: req.body.url,
      text: req.body.text,
      tags :  tfidf_score.slice(0, 10)
     });
@@ -96,7 +96,7 @@ const viewDiscussion = (req, res) => {
       } else {
         console.log(comment);
         res.status(200);
-        //res.status(200).send({ comment });
+        res.status(200).send({ comment });
       }
     }).catch((e) => {
       res.status(400).send();

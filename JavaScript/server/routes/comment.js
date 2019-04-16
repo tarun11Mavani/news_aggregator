@@ -6,7 +6,7 @@ var { Comment } = require('../models/comment.js');
 const submitComment = (req, res) => {
   var comment = new Comment({
     handle: req.body.handle,
-    postID: req.body.postID,
+    postID: req.params.pid,
     text: req.body.text
   });
 
@@ -18,6 +18,6 @@ const submitComment = (req, res) => {
 };
 
 const router = express.Router();
-router.post('/', submitComment);
+router.post('/:pid', submitComment);
 
 module.exports = router;
