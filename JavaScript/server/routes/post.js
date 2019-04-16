@@ -94,7 +94,7 @@ const viewDiscussion = (req, res) => {
       if (!comment) {
         res.status(404).send();
       } else {
-        console.log(comment);x
+        console.log(comment);
         res.status(200).send({ comment });
       }
     }).catch((e) => {

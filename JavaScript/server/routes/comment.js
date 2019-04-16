@@ -29,7 +29,6 @@ const viewDiscussion = (req, res) => {
         res.status(404).send();
       } else {
         console.log(comment);
-        res.status(200);
         res.status(200).send({ reply });
       }
     }).catch((e) => {
